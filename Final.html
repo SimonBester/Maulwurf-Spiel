@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fange den Maulwurf by SimonBester</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: url('https://images.unsplash.com/photo-1557682224-5b8590cd9ec5') no-repeat center center fixed; /* Hintergrundbild */
+            background-size: cover;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        h1 {
+            margin-top: 20px;
+            color: #fff;
+        }
+
+        .game-board {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 20px auto;
+            width: 300px;
+        }
+
+        .hole {
+            width: 90px;
+            height: 90px;
+            margin: 10px;
+            background-color: #8B4513;
+            border-radius: 50%;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .mole {
+            width: 60px;
+            height: 60px;
+            background-color: #000;
+            border-radius: 50%;
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            display: none;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .dark-mode {
+            background: linear-gradient(to right, #333, #555);
+            color: #fff;
+        }
+
+        #dark-mode-switch {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        #external-link-button {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+        }
+
+        #close-button {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #fff;
+            cursor: pointer;
+            display: none;
+        }
+
+        #congrats-message {
+            font-size: 1.5em;
+            color: green;
+        }
+
+        #trophy {
+            width: 100px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Fange den Maulwurf by SimonBester</h1>
+    <button id="start-button">Spiel Starten</button>
+    <label id="dark-mode-switch">
+        Dark Mode
+        <input type="checkbox">
+    </label>
+    <button id="close-button">✖</button>
+    <div class="game-board hidden">
+        <div class="hole" id="hole1"></div>
+        <div class="hole" id="hole2"></div>
+        <div class="hole" id="hole3"></div>
+        <div class="hole" id="hole4"></div>
+        <div class="hole" id="hole5"></div>
+        <div class="hole" id="hole6"></div>
+    </div>
+    <p class="hidden">Punkte: <span id="score">0</span></p>
+    <p class="hidden">Level: <span id="level">1</span></p>
+    <p id="congrats-message" class="hidden"></p>
+    <img id="trophy" src="https://www.clipartmax.com/png/full/11-110345_trophy-clip-art-at-clker-com-vector-clipart-trophy-png.png" alt="Trophy">
+    <button id="external-link-button" onclick="window.location.href='https://www.youtube.com/watch?v=xvFZjo5PgG0';">Klicke für einen Cookie :)</button>
+    <script>
+        let score = 0;
+        let level = 1;
+        let molesClicked = 0;
+        const maxLevel = 8;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const holes = document.querySelectorAll('.hole');
+            const scoreDisplay = document.getElementById('score');
+            const levelDisplay = document.getElementById('level');
+            const startButton = document.getElementById('start-button');
+            const gameBoard = document.querySelector('.game-board');
+            const darkModeSwitch = document.querySelector('#dark-mode-switch input');
+            const congratsMessage = document.getElementById('congrats-message');
+            const trophy = document.getElementById('trophy');
+            const closeButton = document.getElementById('close-button');
+            let activeHole = null;
+            let gameInterval;
+
+            function showMole() {
+                if (activeHole) {
+                    activeHole.innerHTML = '';
+                }
+                const randomHole = holes[Math.floor(Math.random() * holes.length)];
+                const mole = document.createElement('div');
+                mole.classList.add('mole');
+                mole.style.display = 'block';
+                randomHole.appendChild(mole);
+                activeHole = randomHole;
+
+                mole.addEventListener('click', () => {
+                    score++;
+                    scoreDisplay.textContent = score;
+                    molesClicked++;
+                    mole.style.display = 'none';
+
+                    if (molesClicked >= 10) {
+                        level++;
+                        molesClicked = 0;
+                        levelDisplay.textContent = level;
+                        congratsMessage.textContent = `Herzlichen Glückwunsch! Du hast Level ${level - 1} gemeistert!`;
+                        congratsMessage.classList.remove('hidden');
+
+                        if (level > maxLevel) {
+                            trophy.style.display = 'block';
+                            congratsMessage.textContent = 'Herzlichen Glückwunsch! Du hast das Spiel gemeistert!';
+                            clearInterval(gameInterval);
+                            return;
+                        }
+                    } else {
+                        congratsMessage.classList.add('hidden');
+                    }
+                    setTimeout(showMole, 500 - level * 50);
+                });
+
+                setTimeout(() => {
+                    if (mole.style.display !== 'none') {
+                        mole.style.display = 'none';
+                        showMole();
+                    }
+                }, 1000 - level * 100);
+            }
+
+            function startGame() {
+                score = 0;
+                level = 1;
+                molesClicked = 0;
+                scoreDisplay.textContent = score;
+                levelDisplay.textContent = level;
+                gameBoard.classList.remove('hidden');
+                document.querySelectorAll('p').forEach(p => p.classList.remove('hidden'));
+                gameBoard.style.pointerEvents = 'auto';
+                congratsMessage.classList.add('hidden');
+                trophy.style.display = 'none';
+                startButton.classList.add('hidden');
+                closeButton.style.display = 'block';
+                showMole();
+            }
+
+            function goToStartScreen() {
+                score = 0;
+                level = 1;
+                molesClicked = 0;
+                gameBoard.classList.add('hidden');
+                document.querySelectorAll('p').forEach(p => p.classList.add('hidden'));
+                startButton.classList.remove('hidden');
+                closeButton.style.display = 'none';
+                clearInterval(gameInterval);
+            }
+
+            startButton.addEventListener('click', startGame);
+            closeButton.addEventListener('click', goToStartScreen);
+
+            darkModeSwitch.addEventListener('change', () => {
+                document.body.classList.toggle('dark-mode', darkModeSwitch.checked);
+            });
+        });
+    </script>
+</body>
+</html>
